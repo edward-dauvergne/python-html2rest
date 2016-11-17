@@ -37,6 +37,10 @@ try:
     from urllib2 import urlparse
 except ImportError:
     from urllib.parse import urlparse
+try:
+    from htmlentitydefs import name2codepoint
+except ImportError:
+    from html.entities import name2codepoint
 
 CODEBLOCK = '::'
 BLOCKTAGS = ['div', 'blockquote']
@@ -58,9 +62,8 @@ def unescape(text, to_encoding='utf8'):
                 pass
         else:
             # named entity
-            import htmlentitydefs
             try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+                text = unichr(name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text # leave as is
