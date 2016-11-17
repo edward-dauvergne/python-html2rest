@@ -73,7 +73,7 @@ def readsoup(html, convert='html', encoding='utf8'):
     return str(BeautifulSoup(html, convertEntities=convert,
                                             fromEncoding=encoding))
 
-def html2rest(html, writer=sys.stdout, encoding='utf8', relto=None, preprocess=None, wrap_width=80, nowrap=False):
+def html2rest(html, writer=sys.stdout, encoding='utf8', relto=None, preprocess=None, wrap_width=80, nowrap=False, embedded_uri=False):
     relroot = relpath = None
     if relto:
         parsed = urlparse.urlparse(relto)
@@ -83,7 +83,7 @@ def html2rest(html, writer=sys.stdout, encoding='utf8', relto=None, preprocess=N
             relpath += '/'
     if preprocess:
         html = preprocess(html, encoding=encoding)
-    parser = Parser(writer, encoding, relroot, relpath, wrap_width=wrap_width, nowrap=nowrap)
+    parser = Parser(writer, encoding, relroot, relpath, wrap_width=wrap_width, nowrap=nowrap, embedded_uri=embedded_uri)
     #parser.feed(readsoup(html))
     parser.feed(html.decode(encoding))
     parser.close()
@@ -137,12 +137,13 @@ class LineBuffer(object):
 
 class Parser(SGMLParser):
 
-    def __init__(self, writer=sys.stdout, encoding='utf8', relroot=None, relpath=None, wrap_width=80, nowrap=False):
+    def __init__(self, writer=sys.stdout, encoding='utf8', relroot=None, relpath=None, wrap_width=80, nowrap=False, embedded_uri=False):
         SGMLParser.__init__(self)
         self.writer = writer
         self.encoding = encoding
         self.relroot = relroot
         self.relpath = relpath
+        self.embedded_uri = embedded_uri
         self.stringbuffer = StringIO()
         self.linebuffer = LineBuffer(wrap_width=wrap_width, nowrap=nowrap)
         self.verbatim = False
@@ -264,7 +265,10 @@ class Parser(SGMLParser):
 
     def end_a(self):
         if '#pending' in self.hrefs:
-            self.data('`_')
+            if self.embedded_uri:
+                self.data(' <%s>`_' % self.hrefs['#pending'])
+            else:
+                self.data('`_')
             del self.hrefs['#pending']
 
     def start_pre(self, attrs):
@@ -407,6 +411,8 @@ class Parser(SGMLParser):
 
     def end_body(self):
         self.end_p()
+        if self.embedded_uri:
+            return
         for href, link in self.hrefs.items():
             if href[0] != '#':
                 self.writeline('.. _%s: %s' % (link, href))
