@@ -28,7 +28,10 @@ import sys
 import os
 import re
 from sgmllib import SGMLParser
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 from textwrap import TextWrapper
 from urllib2 import urlparse
 
