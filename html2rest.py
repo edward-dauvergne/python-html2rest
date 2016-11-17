@@ -171,7 +171,7 @@ class Parser(SGMLParser):
             if self.inblock > 1:
                 indent = 4 * (self.inblock - 1)
                 self.linebuffer.indent(indent)
-            self.writer.write(unescape(self.linebuffer.read(), self.encoding))
+            self.writer.write(str(unescape(self.linebuffer.read(), self.encoding)))
             self.linebuffer.clear()
 
     def flush_stringbuffer(self):
@@ -198,7 +198,7 @@ class Parser(SGMLParser):
     def write(self, text=''):
         self.flush_stringbuffer()
         self.flush()
-        self.writer.write(unescape(text))
+        self.writer.write(str(unescape(text)))
 
     def writeline(self, text=''):
         self.write(text + '\n')
