@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #-----------------------------------------------------------------------------
 # Copyright (c) 2006-2011  Gerard Flanagan
+# Copyright (c) 2016 Edward d'Auvergne
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the "Software"),
@@ -72,7 +73,7 @@ def readsoup(html, convert='html', encoding='utf8'):
     return str(BeautifulSoup(html, convertEntities=convert,
                                             fromEncoding=encoding))
 
-def html2rest(html, writer=sys.stdout, encoding='utf8', relto=None, preprocess=None):
+def html2rest(html, writer=sys.stdout, encoding='utf8', relto=None, preprocess=None, nowrap=False):
     relroot = relpath = None
     if relto:
         parsed = urlparse.urlparse(relto)
@@ -82,14 +83,15 @@ def html2rest(html, writer=sys.stdout, encoding='utf8', relto=None, preprocess=N
             relpath += '/'
     if preprocess:
         html = preprocess(html, encoding=encoding)
-    parser = Parser(writer, encoding, relroot, relpath)
+    parser = Parser(writer, encoding, relroot, relpath, nowrap=nowrap)
     #parser.feed(readsoup(html))
     parser.feed(html.decode(encoding))
     parser.close()
 
 class LineBuffer(object):
 
-    def __init__(self):
+    def __init__(self, nowrap=False):
+        self._nowrap = nowrap
         self._lines = []
         self._wrapper = TextWrapper()
 
@@ -111,7 +113,10 @@ class LineBuffer(object):
     def write(self, s):
         #normalise whitespace
         s = ' '.join(s.split())
-        self._lines.extend(self._wrapper.wrap(s))
+        if self._nowrap:
+            self._lines.append(s)
+        else:
+            self._lines.extend(self._wrapper.wrap(s))
 
     def rawwrite(self, s):
         self._lines.extend(s.splitlines())
@@ -131,14 +136,14 @@ class LineBuffer(object):
 
 class Parser(SGMLParser):
 
-    def __init__(self, writer=sys.stdout, encoding='utf8', relroot=None, relpath=None):
+    def __init__(self, writer=sys.stdout, encoding='utf8', relroot=None, relpath=None, nowrap=False):
         SGMLParser.__init__(self)
         self.writer = writer
         self.encoding = encoding
         self.relroot = relroot
         self.relpath = relpath
         self.stringbuffer = StringIO()
-        self.linebuffer = LineBuffer()
+        self.linebuffer = LineBuffer(nowrap)
         self.verbatim = False
         self.lists = []
         self.ignoredata = False
