@@ -33,7 +33,10 @@ try:
 except ImportError:
     from io import StringIO
 from textwrap import TextWrapper
-from urllib2 import urlparse
+try:
+    from urllib2 import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 CODEBLOCK = '::'
 BLOCKTAGS = ['div', 'blockquote']
