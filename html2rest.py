@@ -27,7 +27,10 @@ __version__ = '0.2.2'
 import sys
 import os
 import re
-from sgmllib import SGMLParser
+try:
+    from HTMLParser import HTMLParser
+except ImportError:
+    from html.parser import HTMLParser
 try:
     from StringIO import StringIO
 except ImportError:
@@ -144,10 +147,10 @@ class LineBuffer(object):
         for i in range(len(linebuf)):
             linebuf[i] = linebuf[i].lstrip()
 
-class Parser(SGMLParser):
+class Parser(HTMLParser):
 
     def __init__(self, writer=sys.stdout, encoding='utf8', relroot=None, relpath=None, wrap_width=80, nowrap=False, embedded_uri=False):
-        SGMLParser.__init__(self)
+        HTMLParser.__init__(self)
         self.writer = writer
         self.encoding = encoding
         self.relroot = relroot
@@ -164,7 +167,7 @@ class Parser(SGMLParser):
 
     def close(self):
         self.writeline()
-        SGMLParser.close(self)
+        HTMLParser.close(self)
 
     def flush(self):
         if self.linebuffer:
