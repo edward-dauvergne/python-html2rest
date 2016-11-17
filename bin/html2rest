@@ -18,6 +18,7 @@ def arguments():
     # Add the options.
     parser.add_option('-e', '--encoding', action='store', type='string', dest='encoding', default=(locale.getpreferredencoding() or 'utf8'), help='choose the text encoding')
     parser.add_option('-r', '--relto', action='store', type='string', dest='relto', help='set the relative path')
+    parser.add_option('-w', '--wrap-width', action='store', type='int', dest='wrap_width', default=80, help='number of characters for the line wrapping width (defaults to 80)', metavar='NUM')
     parser.add_option('--no-wrap', action='store_true', dest='nowrap', default=0, help='disable line wrapping')
 
     # Parse the options.
@@ -34,15 +35,15 @@ def arguments():
             fileobj = open(arg, 'rb')
 
     # Return the arguments.
-    return fileobj, options.encoding, options.relto, options.nowrap
+    return fileobj, options
 
 
 # Parse the arguments.
-fileobj, encoding, relto, nowrap = arguments()
+fileobj, options = arguments()
 
 # Execute.
 try:
-    html2rest(fileobj.read(), encoding=encoding, relto=relto, nowrap=nowrap)
+    html2rest(fileobj.read(), encoding=options.encoding, relto=options.relto, wrap_width=options.wrap_width, nowrap=options.nowrap)
 finally:
     try:
         fileobj.close()
