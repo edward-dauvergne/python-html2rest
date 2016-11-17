@@ -13,7 +13,7 @@ def arguments():
     """Process the command line arguments."""
 
     # Set up the parser object.
-    parser = OptionParser(usage="usage: %prog [URL/file]")
+    parser = OptionParser(usage="usage: %prog [URL/input file] [output file]")
 
     # Add the options.
     parser.add_option('-e', '--encoding', action='store', type='string', dest='encoding', default=(locale.getpreferredencoding() or 'utf8'), help='choose the text encoding')
@@ -25,9 +25,11 @@ def arguments():
     # Parse the options.
     options, args = parser.parse_args()
 
-    # Process the URL or file name.
-    if len(args) > 1:
+    # Argument number check.
+    if len(args) > 2:
         parser.error("unknown arguments")
+
+    # Process the URL or file name.
     fileobj = sys.stdin
     if len(args):
         if '://' in args[0]:
@@ -35,16 +37,21 @@ def arguments():
         else:
             fileobj = open(arg, 'rb')
 
+    # Process the output file name.
+    writer = sys.stdout
+    if len(args) == 2:
+        writer = open(args[1], 'w')
+
     # Return the arguments.
-    return fileobj, options
+    return fileobj, writer, options
 
 
 # Parse the arguments.
-fileobj, options = arguments()
+fileobj, writer, options = arguments()
 
 # Execute.
 try:
-    html2rest(fileobj.read(), encoding=options.encoding, relto=options.relto, wrap_width=options.wrap_width, nowrap=options.nowrap, embedded_uri=options.embedded_uri)
+    html2rest(fileobj.read(), writer=writer, encoding=options.encoding, relto=options.relto, wrap_width=options.wrap_width, nowrap=options.nowrap, embedded_uri=options.embedded_uri)
 finally:
     try:
         fileobj.close()
