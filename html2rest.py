@@ -73,7 +73,7 @@ def readsoup(html, convert='html', encoding='utf8'):
     return str(BeautifulSoup(html, convertEntities=convert,
                                             fromEncoding=encoding))
 
-def html2rest(html, writer=sys.stdout, encoding='utf8', relto=None, preprocess=None, nowrap=False):
+def html2rest(html, writer=sys.stdout, encoding='utf8', relto=None, preprocess=None, wrap_width=80, nowrap=False):
     relroot = relpath = None
     if relto:
         parsed = urlparse.urlparse(relto)
@@ -83,17 +83,18 @@ def html2rest(html, writer=sys.stdout, encoding='utf8', relto=None, preprocess=N
             relpath += '/'
     if preprocess:
         html = preprocess(html, encoding=encoding)
-    parser = Parser(writer, encoding, relroot, relpath, nowrap=nowrap)
+    parser = Parser(writer, encoding, relroot, relpath, wrap_width=wrap_width, nowrap=nowrap)
     #parser.feed(readsoup(html))
     parser.feed(html.decode(encoding))
     parser.close()
 
 class LineBuffer(object):
 
-    def __init__(self, nowrap=False):
+    def __init__(self, wrap_width=80, nowrap=False):
         self._nowrap = nowrap
         self._lines = []
         self._wrapper = TextWrapper()
+        self._wrapper.width = wrap_width
 
     def __len__(self):
         return len(self._lines)
@@ -136,14 +137,14 @@ class LineBuffer(object):
 
 class Parser(SGMLParser):
 
-    def __init__(self, writer=sys.stdout, encoding='utf8', relroot=None, relpath=None, nowrap=False):
+    def __init__(self, writer=sys.stdout, encoding='utf8', relroot=None, relpath=None, wrap_width=80, nowrap=False):
         SGMLParser.__init__(self)
         self.writer = writer
         self.encoding = encoding
         self.relroot = relroot
         self.relpath = relpath
         self.stringbuffer = StringIO()
-        self.linebuffer = LineBuffer(nowrap)
+        self.linebuffer = LineBuffer(wrap_width=wrap_width, nowrap=nowrap)
         self.verbatim = False
         self.lists = []
         self.ignoredata = False
