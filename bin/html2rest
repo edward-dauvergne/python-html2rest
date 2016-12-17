@@ -35,7 +35,7 @@ def arguments():
         if '://' in args[0]:
             fileobj = urllib.urlopen(args[0])
         else:
-            fileobj = open(arg, 'rb')
+            fileobj = open(args[0], 'rb')
 
     # Process the output file name.
     writer = sys.stdout
